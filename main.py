@@ -76,7 +76,7 @@ def move_quote():
     if destination not in ['quotes', 'removed']:
         return jsonify({"error": "Destination must be 'quotes' or 'removed'"}), 400
     
-    # Read source file (unapproved quotes)
+    # Read source file (approved quotes)
     source_quotes = read_json_file(APPROVED_QUOTES_PATH)
     
     if index < 0 or index >= len(source_quotes):
@@ -102,6 +102,7 @@ def move_quote():
         return jsonify({"error": "Failed to update destination file"}), 500
     
     return jsonify({"success": True, "message": f"Quote moved to {destination}"})
+
 
 # Endpoint to run git pull
 @app.route('/api/git/pull', methods=['POST'])
