@@ -1,10 +1,14 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS  # Import Flask-CORS
 import json
 import os
 import subprocess
 from functools import wraps
 
 app = Flask(__name__)
+
+# Enable CORS for all routes
+CORS(app)
 
 # File paths
 QUOTES_PATH = "/home/mojtaba/wall/quotes.json"
