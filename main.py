@@ -11,10 +11,9 @@ app = Flask(__name__)
 CORS(app)
 
 # File paths
+PENDING_QUOTES_PATH = "/home/mojtaba/wall/pending_quotes.json"
 QUOTES_PATH = "/home/mojtaba/wall/quotes.json"
-APPROVED_QUOTES_PATH = "/home/mojtaba/wall/approved_quotes.json"
 REMOVED_QUOTES_PATH = "/home/mojtaba/wall/removed_quotes.json"
-UNAPPROVED_QUOTES_PATH = "/home/mojtaba/wall/unapproved_quotes.json"
 REPO_PATH = "/home/mojtaba/wall/"
 
 # Basic authentication decorator
@@ -48,23 +47,21 @@ def write_json_file(file_path, data):
         app.logger.error(f"Error writing to {file_path}: {str(e)}")
         return False
 
-# Endpoint to get all quotes, including unapproved quotes
+# Endpoint to get all quotes, including pending, approved, and removed quotes
 @app.route('/api/quotes', methods=['GET'])
 @require_api_key
 def get_all_quotes():
-    quotes = read_json_file(QUOTES_PATH)
-    approved_quotes = read_json_file(APPROVED_QUOTES_PATH)
+    pending_quotes = read_json_file(PENDING_QUOTES_PATH)
+    approved_quotes = read_json_file(QUOTES_PATH)
     removed_quotes = read_json_file(REMOVED_QUOTES_PATH)
-    unapproved_quotes = read_json_file(UNAPPROVED_QUOTES_PATH)
     
     return jsonify({
-        "quotes": quotes,
+        "pending_quotes": pending_quotes,
         "approved_quotes": approved_quotes,
-        "removed_quotes": removed_quotes,
-        "unapproved_quotes": unapproved_quotes
+        "removed_quotes": removed_quotes
     })
 
-# Endpoint to move a quote from unapproved to either quotes or removed
+# Endpoint to move a quote from pending to either approved or removed
 @app.route('/api/quotes/move', methods=['POST'])
 @require_api_key
 def move_quote():
@@ -78,8 +75,8 @@ def move_quote():
     if destination not in ['quotes', 'removed']:
         return jsonify({"error": "Destination must be 'quotes' or 'removed'"}), 400
     
-    # Read source file (unapproved quotes)
-    source_quotes = read_json_file(UNAPPROVED_QUOTES_PATH)
+    # Read source file (pending quotes)
+    source_quotes = read_json_file(PENDING_QUOTES_PATH)
     
     if index < 0 or index >= len(source_quotes):
         return jsonify({"error": "Index out of range"}), 400
@@ -88,7 +85,7 @@ def move_quote():
     quote_to_move = source_quotes.pop(index)
     
     # Write back the source file without the moved quote
-    if not write_json_file(UNAPPROVED_QUOTES_PATH, source_quotes):
+    if not write_json_file(PENDING_QUOTES_PATH, source_quotes):
         return jsonify({"error": "Failed to update source file"}), 500
     
     # Add to destination file
