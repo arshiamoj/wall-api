@@ -11,10 +11,10 @@ app = Flask(__name__)
 CORS(app)
 
 # File paths
-PENDING_QUOTES_PATH = "/home/mojtaba/retro-wall/pending_quotes.json"
-QUOTES_PATH = "/home/mojtaba/retro-wall/quotes.json"
-REMOVED_QUOTES_PATH = "/home/mojtaba/retro-wall/removed_quotes.json"
-REPO_PATH = "/home/mojtaba/retro-wall/"
+PENDING_QUOTES_PATH = "/home/mojtaba/wall/pending_quotes.json"
+QUOTES_PATH = "/home/mojtaba/wall/quotes.json"
+REMOVED_QUOTES_PATH = "/home/mojtaba/wall/removed_quotes.json"
+REPO_PATH = "/home/mojtaba/wall/"
 
 # Basic authentication decorator
 def require_api_key(f):
