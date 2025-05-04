@@ -14,6 +14,7 @@ CORS(app)
 QUOTES_PATH = "/home/mojtaba/wall/quotes.json"
 APPROVED_QUOTES_PATH = "/home/mojtaba/wall/approved_quotes.json"
 REMOVED_QUOTES_PATH = "/home/mojtaba/wall/removed_quotes.json"
+UNAPPROVED_QUOTES_PATH = "/home/mojtaba/wall/unapproved_quotes.json"
 REPO_PATH = "/home/mojtaba/wall/"
 
 # Basic authentication decorator
@@ -21,7 +22,6 @@ def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         api_key = request.headers.get('X-API-Key')
-        # You should replace 'your_secret_api_key' with a secure key
         if not api_key or api_key != 'your_secret_api_key':
             return jsonify({"error": "Unauthorized access"}), 401
         return f(*args, **kwargs)
@@ -48,18 +48,20 @@ def write_json_file(file_path, data):
         app.logger.error(f"Error writing to {file_path}: {str(e)}")
         return False
 
-# Endpoint to get all quotes
+# Endpoint to get all quotes, including unapproved quotes
 @app.route('/api/quotes', methods=['GET'])
 @require_api_key
 def get_all_quotes():
     quotes = read_json_file(QUOTES_PATH)
     approved_quotes = read_json_file(APPROVED_QUOTES_PATH)
     removed_quotes = read_json_file(REMOVED_QUOTES_PATH)
+    unapproved_quotes = read_json_file(UNAPPROVED_QUOTES_PATH)
     
     return jsonify({
         "quotes": quotes,
         "approved_quotes": approved_quotes,
-        "removed_quotes": removed_quotes
+        "removed_quotes": removed_quotes,
+        "unapproved_quotes": unapproved_quotes
     })
 
 # Endpoint to move a quote from unapproved to either quotes or removed
@@ -76,8 +78,8 @@ def move_quote():
     if destination not in ['quotes', 'removed']:
         return jsonify({"error": "Destination must be 'quotes' or 'removed'"}), 400
     
-    # Read source file (approved quotes)
-    source_quotes = read_json_file(APPROVED_QUOTES_PATH)
+    # Read source file (unapproved quotes)
+    source_quotes = read_json_file(UNAPPROVED_QUOTES_PATH)
     
     if index < 0 or index >= len(source_quotes):
         return jsonify({"error": "Index out of range"}), 400
@@ -86,7 +88,7 @@ def move_quote():
     quote_to_move = source_quotes.pop(index)
     
     # Write back the source file without the moved quote
-    if not write_json_file(APPROVED_QUOTES_PATH, source_quotes):
+    if not write_json_file(UNAPPROVED_QUOTES_PATH, source_quotes):
         return jsonify({"error": "Failed to update source file"}), 500
     
     # Add to destination file
@@ -102,7 +104,6 @@ def move_quote():
         return jsonify({"error": "Failed to update destination file"}), 500
     
     return jsonify({"success": True, "message": f"Quote moved to {destination}"})
-
 
 # Endpoint to run git pull
 @app.route('/api/git/pull', methods=['POST'])
@@ -141,7 +142,6 @@ def git_pull():
 @require_api_key
 def reboot_system():
     try:
-        # This requires sudo privileges or appropriate permissions
         subprocess.Popen(['sudo', 'reboot'])
         return jsonify({
             "success": True,
