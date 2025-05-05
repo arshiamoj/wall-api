@@ -21,7 +21,7 @@ def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         api_key = request.headers.get('X-API-Key')
-        if not api_key or api_key != 'your_secret_api_key':
+        if not api_key or api_key != 'retromowz123':
             return jsonify({"error": "Unauthorized access"}), 401
         return f(*args, **kwargs)
     return decorated_function
